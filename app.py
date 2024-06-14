@@ -1,17 +1,15 @@
+
+
+
+
 from flask import Flask, render_template, request, jsonify
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import torch
 
 app = Flask(__name__)
 
-# Load model and tokenizer from Hugging Face's model hub
-try:
-    tokenizer = AutoTokenizer.from_pretrained("microsoft/DialoGPT-medium")
-    model = AutoModelForCausalLM.from_pretrained("microsoft/DialoGPT-medium")
-except Exception as e:
-    print(f"Failed to load model from Hugging Face: {e}")
-    tokenizer = None
-    model = None
+tokenizer = AutoTokenizer.from_pretrained("microsoft/DialoGPT-medium")
+model = AutoModelForCausalLM.from_pretrained("microsoft/DialoGPT-medium")
 
 @app.route("/")
 def index():
@@ -19,15 +17,9 @@ def index():
 
 @app.route("/get", methods=["POST"])
 def chat():
-    if model is None or tokenizer is None:
-        return jsonify({"response": "Failed to load model from Hugging Face. Check logs for details."})
-
-    try:
-        msg = request.form["msg"]
-        response = get_chat_response(msg)
-        return jsonify({"response": response})
-    except Exception as e:
-        return jsonify({"response": f"Error: {e}"})
+    msg = request.form["msg"]
+    response = get_chat_response(msg)
+    return jsonify({"response": response})
 
 def get_chat_response(text):
     new_user_input_ids = tokenizer.encode(str(text) + tokenizer.eos_token, return_tensors='pt')
