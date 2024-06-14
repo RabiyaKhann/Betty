@@ -1,4 +1,4 @@
-![RABIYAKHAN](Logo/rk-logo-4.jpg)
+![RABIYAKHAN](rk-logo-4.jpg)
 
 # ChatBot
 
