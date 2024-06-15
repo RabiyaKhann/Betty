@@ -12,7 +12,7 @@ model = AutoModelForCausalLM.from_pretrained("microsoft/DialoGPT-medium")
 
 @app.route("/")
 def index():
-    return "Welcome to Betty Chatbot!"
+    return render_template('index.html')
 
 @app.route("/get", methods=["GET", "POST"])
 def chat():
