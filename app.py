@@ -11,7 +11,7 @@ model = AutoModelForCausalLM.from_pretrained(model_dir)
 
 @app.route("/")
 def index():
-    return render_template('chat.html')
+    return render_template('index.html')
 
 @app.route("/get", methods=["POST"])
 def chat():
