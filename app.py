@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
+import os
 
 app = Flask(__name__)
 CORS(app)
@@ -21,12 +22,12 @@ def index():
 def chat():
     if request.method == "POST":
         msg = request.form["msg"]
-        response = get_Chat_response(msg)
+        response = get_chat_response(msg)
         return jsonify({"response": response})
     else:
         return "Method not allowed", 405
 
-def get_Chat_response(text):
+def get_chat_response(text):
     global chat_history_ids
 
     # Encode user input and generate response
@@ -38,4 +39,5 @@ def get_Chat_response(text):
     return response
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port, debug=True)
