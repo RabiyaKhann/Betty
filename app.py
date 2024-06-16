@@ -1,13 +1,17 @@
-from flask import Flask, render_template, request, jsonify
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from flask import Flask, request, jsonify, render_template
+from flask_cors import CORS
 import torch
+from transformers import AutoModelForCausalLM, AutoTokenizer
 
 app = Flask(__name__)
+CORS(app)
 
-# Load the tokenizer and model from the local directory
-model_dir = "./model"
-tokenizer = AutoTokenizer.from_pretrained(model_dir)
-model = AutoModelForCausalLM.from_pretrained(model_dir)
+# Initialize tokenizer and model
+tokenizer = AutoTokenizer.from_pretrained("microsoft/DialoGPT-medium")
+model = AutoModelForCausalLM.from_pretrained("microsoft/DialoGPT-medium")
+
+# Variable to store chat history
+chat_history_ids = None
 
 @app.route("/")
 def index():
@@ -15,23 +19,23 @@ def index():
 
 @app.route("/get", methods=["POST"])
 def chat():
-    msg = request.form["msg"]
-    response = get_chat_response(msg)
-    return jsonify({"response": response})
+    if request.method == "POST":
+        msg = request.form["msg"]
+        response = get_Chat_response(msg)
+        return jsonify({"response": response})
+    else:
+        return "Method not allowed", 405
 
-def get_chat_response(text, chat_history_ids=None):
-    # encode the new user input, add the eos_token and return a tensor in Pytorch
-    new_user_input_ids = tokenizer.encode(text + tokenizer.eos_token, return_tensors='pt')
+def get_Chat_response(text):
+    global chat_history_ids
 
-    # append the new user input tokens to the chat history
+    # Encode user input and generate response
+    new_user_input_ids = tokenizer.encode(str(text) + tokenizer.eos_token, return_tensors='pt')
     bot_input_ids = torch.cat([chat_history_ids, new_user_input_ids], dim=-1) if chat_history_ids is not None else new_user_input_ids
-
-    # generated a response while limiting the total chat history to 1000 tokens
     chat_history_ids = model.generate(bot_input_ids, max_length=1000, pad_token_id=tokenizer.eos_token_id)
-
-    # decode the last output tokens from bot and return
     response = tokenizer.decode(chat_history_ids[:, bot_input_ids.shape[-1]:][0], skip_special_tokens=True)
+
     return response
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port=5000)
